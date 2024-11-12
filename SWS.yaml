@@ -1,0 +1,1726 @@
+openapi: 3.0.2
+info:
+  version: 1.0.0-oas3
+  title: Shipper Web Services
+  description: Web services for shipper supporting placing shipment orders.
+  contact:
+    name: Fores Technology Group
+    url: http://www.fores.group
+    email: info@fores.group
+  license:
+    name: MIT
+    url: http://opensource.org/licenses/MIT
+paths:
+  /LoginService/V2_0/getAuth:
+    post:
+      summary: >- 
+        Login service is called at first to obtain a token necessary for authentication in the other Shipper web services.
+      operationId: getAuth
+      description: Requires credentials registered in Shipper Admin.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                delisId:
+                  type: string
+                  description: >-
+                    In the Shipper Admin in the section API service configuration you can find Access credentials page, on this page you can find the login and this login is delisID
+                password:
+                  type: string
+                  description: >-
+                    In the Shipper Admin in the section API service configuration you can find Access credentials page, on this page you can find the password 
+                messageLanguage:
+                  type: string
+                  description: >-
+                    Language format is Locale, right now you can choose the following languages : en_EN, de_DE, nl_NL, fr_FR, if you write another language, it will return as English.
+                  minLength: 5
+                  maxLength: 5
+              required:
+                - delisId
+                - password
+                - messageLanguage
+      responses:
+        '200':
+          description: Authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  getAuthResponse:
+                    type: object
+                    properties:
+                      return:
+                        type: object
+                        properties:
+                          delisId:
+                            type: string
+                            description: >-
+                              In the Shipper Admin in the section API service configuration you can find Access credentials page, on this page you can find the login and this login is delisID
+                          customerUid:
+                            type: string
+                            description: >-
+                              The user's customer uid. This is needed for  subaccounts, usually this is equal to DELIS-Id. Real delisID of the customer
+                          authToken:
+                            type: string
+                            description: >-
+                              The Authtoken, needed for other web service calls. Token expires in 24 hours.
+                          depot:
+                            type: string
+                            description: depot code to which the configuration is assigned
+                required: 
+                  - delisId
+                  - customerUid
+                  - authToken
+                  - depot
+  /LoginService/V2_1/getAuth:
+    post:
+      summary: >- 
+        Login service is called at first to obtain a token necessary for authentication in the other Shipper web services.
+      operationId: getAuth2
+      description: Requires credentials registered in Shipper Admin.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                delisId:
+                  type: string
+                  description: >-
+                    In the Shipper Admin in the section API service configuration you can find Access credentials page, on this page you can find the login and this login is delisID
+                password:
+                  type: string
+                  description: >-
+                    In the Shipper Admin in the section API service configuration you can find Access credentials page, on this page you can find the password 
+                messageLanguage:
+                  type: string
+                  description: >-
+                    Language format is Locale, right now you can choose the following languages : en_EN, de_DE, nl_NL, fr_FR, if you write another language, it will return as English.
+                  minLength: 5
+                  maxLength: 5
+              required:
+                - delisId
+                - password
+                - messageLanguage
+      responses:
+        '200':
+          description: Authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  getAuthResponse:
+                    type: object
+                    properties:
+                      return:
+                        type: object
+                        properties:
+                          delisId:
+                            type: string
+                            description: >-
+                              In the Shipper Admin in the section API service configuration you can find Access credentials page, on this page you can find the login and this login is delisID
+                          customerUid:
+                            type: string
+                            description: >-
+                              The user's customer uid. This is needed for  subaccounts, usually this is equal to DELIS-Id. Real delisID of the customer
+                          authToken:
+                            type: string
+                            description: >-
+                              The Authtoken, needed for other web service calls. Token expires in 24 hours.
+                          depot:
+                            type: string
+                            description: depot code to which the configuration is assigned
+                          authTokenExpires:
+                            type: string
+                            format: yyyy-mm-ddThh:mm:ss.xxxxxxx
+                            description: >-
+                              UTC format, the time until the token will be valid. You can find it in DB (DPD NL → Schemas→ webservices → usertoken )
+                required: 
+                  - delisId
+                  - customerUid
+                  - authToken
+                  - depot
+                  - authTokenExpires
+  /ShipmentService/V3_4/getAvailableServices:
+    post:
+      summary: Checking available products for storeOrder method
+      operationId: getAvailableServices
+      description: >-
+        Returns a list of products and services available for a given customer configuration.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authentication:
+                  $ref: '#/components/schemas/authentication'
+                getAvailableProductsAndServices:
+                  type: string
+      responses:
+        '200':
+          description: returned products and services
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    description: >-
+                      List of products available for a given configuration. Contains description of each available product.
+                    type: array
+                    items:
+                      minItems: 0
+                      properties:
+                        Name:
+                          type: string
+                          description: Full name of the product.
+                        Description:
+                          type: string
+                          description: >-
+                            Contains description of the product. May be multiline and contain descriptions for several languages.
+                        Code:
+                          type: string
+                          description: >-
+                            Code of the product to be used in order creation. Additional services will have it filled too, but they can’t be used in product attribute of the storeOrders method.
+                  additionalServices:
+                    description: >-
+                      List of additional services available for a given configuration. Contains description of each available additional service.
+                    type: array
+                    items:
+                      minItems: 0
+                      properties:
+                        Name:
+                          type: string
+                          description: Full name of the additional service.
+                        Description:
+                          type: string
+                          description: >-
+                            Contains description of the additional service. May be multiline and contain descriptions for several languages.
+                        Code:
+                          type: string
+                          description: >-
+                            Code of the additional service - can’t be used in product attribute of the storeOrders method.
+  /ShipmentService/V3_4/storeOrders:
+    post:
+      summary: Creating new shipment order
+      operationId: storeOrders
+      description: >-
+        Returns parcel label in PDF format.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authentication:
+                  $ref: '#/components/schemas/authentication'
+                storeOrders:
+                  type: object
+                  properties:
+                    printOptions:
+                      type: object
+                      description: Options how to return the parcel labels
+                      properties:
+                        printerLanguage:
+                          type: string
+                          enum: [ZPL, PDF]
+                          description: >-
+                            The language in which the parcel labels should be returned. PDF as file output, ZPL for direct printing. In any case the output is base64 encoded.
+                        paperFormat:
+                          type: string
+                          enum: [A4, A6, A7]
+                          description: >-
+                            Declares the paper format for parcel label print, either "A4" or "A6". For direct printing the format has to be set to "A6". "A7" only for return labels, other type are not allowed.
+                        printer:
+                          type: object
+                          description: >-
+                            Information about the printer. Enabled if direct printing is selected.
+                          properties:
+                            manufacturer:
+                              type: string
+                              description: >-
+                                The printer's manufacturer. At the moment only for informational purposes.
+                            model:
+                              type: string
+                              description: >-
+                                The printer's model. At the moment only for informational purposes.
+                            revision:
+                              type: string
+                              description: >-
+                                The printer's revision / version. At the moment only for informational purposes.
+                            offsetX:
+                              type: number
+                              description: >-
+                                The horizontal offset in mm for the direct printer file (Not used with normal PDF output).
+                            offsetY:
+                              type: number
+                              description: >-
+                                The vertical offset in mm for the direct printer file (Not used with normal PDF output).
+                            connectionType:
+                              type: string
+                              enum: [PARALLEL, SERIAL]
+                              description: >-
+                                The connection type of the printer: serial or parallel connection.
+                            barcodeCapable2D:
+                              type: boolean
+                              description: >-
+                                If the printer can print AZTEC barcodes, set this flag to true.
+                          required:
+                            - offsetX
+                            - offsetY
+                            - connectionType
+                            - barcodeCapable2D
+                        startPosition:
+                          type: string
+                          enum: [UPPER_LEFT, UPPER_RIGHT LOWER_LEFT, LOWER_RIGHT]
+                          description: >-
+                            Start position for print on A4 paper
+                        printerResolution:
+                          type: number
+                          description: >-
+                            Defines resolution of the ZPL printer in DPI units
+                        isELabel:
+                          type: boolean
+                          description: Flag if E-Label is required
+                      required: 
+                        - printerLanguage
+                        - paperFormat
+                    orders:
+                      type: array
+                      description: Contains the whole data for the shipments.
+                      items:
+                        minItems: 1
+                        maxItems: 30
+                        properties:
+                          order:
+                            type: object
+                            description: Contains the whole data for the shipments.
+                            properties:
+                              generalShipmentData:
+                                type: object
+                                description: Contains general data for a shipment.
+                                properties:
+                                  mpsId:
+                                    type: string
+                                    minLength: 25
+                                    maxLength: 25
+                                    description: >-
+                                      The shipment number for consignment data. The shipment number is only accepted if the parcel label number is allocated by customer. It starts with one of "MPS", "EXP" or "B2C", the last eight ciphers are the date in format yyyyMMdd.
+                                  cUser:
+                                    type: string
+                                    maxLength: 10
+                                    description: User ID of the person who made the entry.
+                                  mpsCustomerReferenceNumber1:
+                                    type: string
+                                    maxLength: 50
+                                    description: >-
+                                      Consignment customer reference number 1 (maximal length 35), also customer reference number for collection request orders (maximal length  50).
+                                  mpsCustomerReferenceNumber2:
+                                    type: string
+                                    maxLength: 35
+                                    description: >-
+                                      Consignment customer reference number 2.
+                                  mpsCustomerReferenceNumber3:
+                                    type: string
+                                    maxLength: 35
+                                    description: >-
+                                      Consignment customer reference number 3.
+                                  mpsCustomerReferenceNumber4:
+                                    type: string
+                                    maxLength: 35
+                                    description: >-
+                                      Consignment customer reference number 4.
+                                  identificationNumber:
+                                    type: string
+                                    maxLength: 999
+                                    description: >-
+                                      Serves as unique alphanumeric key of the shipment used by customer. Can obtain up to 999 ciphers.
+                                  sendingDepot:
+                                    type: string
+                                    minLength: 4
+                                    maxLength: 4
+                                    description: >-
+                                      Sending depot for consignment, ordering depot for collection request, customer's depot for pickup information or creating/sending depot for dangerous goods. 4 alphanumeric places, including leading zeros, e.g. 0163.
+                                  product:
+                                    type: string
+                                    enum: [CL, E830, E10, E12, E18, IE2, PL, PL+, MAIL]
+                                    description: >-
+                                      Selection of product, exactly one per shipment, mandatory for consignment data. Possible values are:
+                                          CL = DPD CLASSIC
+                                          E830 = DPD 8:30
+                                          E10 = DPD 10:00
+                                          E12 = DPD 12:00
+                                          E18 = DPD 18:00
+                                          IE2 = DPD EXPRESS
+                                          PL = DPD PARCELLetter
+                                          PL+ = DPD PARCELLetterPlus
+                                          MAIL = DPD International Mail
+                                  mpsCompleteDelivery:
+                                    type: boolean
+                                    description: >-
+                                      Defines if the shipment should be sent as complete delivery. Mandatory for COD. Default value is false.
+                                  mpsCompleteDeliveryLabel:
+                                    type: boolean
+                                    description: >-
+                                      Defines if the label for complete delivery is printed for pickup. Default value is false.Defines if the label for complete delivery is printed for pickup. Default value is false.
+                                  mpsVolume:
+                                    type: number
+                                    maximum: 999999999
+                                    description: >-
+                                      Volume per consignment in cm3 (without decimal places).
+                                  mpsWeight:
+                                    type: number
+                                    maximum: 99999999
+                                    description: >-
+                                      Shipment weight in grams units without decimal delimiter (e.g. 3000 equals 3kg). Sum of weight (complex type parcel) equal mpsWeight. Sum of grossWeight (complex type international) equal mpsWeight
+                                  mpsExpectedSendingDate:
+                                    type: string
+                                    pattern: '[2][0-9]{3}([0][0-9]|[1][0-2])(0[1-9]|[12][0-9]|3[01])'
+                                    description: >-
+                                      Date when the shipment is expected to be transferred to the system. Format is YYYYMMDD.
+                                  mpsExpectedSendingTime:
+                                    type: string
+                                    pattern: '(([1][0-9]|[2][0-3] |[0][0-9])([0-5][0-9])([0-5][0-9]))|([0-9]([0-5][0-9])([0-5][0-9]))'
+                                    description: >-
+                                      Time when the shipment is expected to be transferred to the system. Format is HHMMSS.
+                                  sender:
+                                    description: >-
+                                      Consignment sender's address, collection request customer's address or pickup information customer's address.
+                                    allOf:
+                                      - $ref: '#/components/schemas/address'
+                                  recipient:
+                                    description: >-
+                                      Address of the recipient. For parcel shop delivery address of the real recipient.
+                                    allOf:
+                                      - $ref: '#/components/schemas/address'
+                                required:
+                                  - sendingDepot
+                                  - product
+                                  - sender
+                                  - recipient
+                              parcels:
+                                type: object
+                                description: Contains information for the parcels.
+                                properties:
+                                  parcelLabelNumber:
+                                    type: string
+                                    minLength: 11
+                                    maxLength: 14
+                                    description: >-
+                                      Parcel label number. Number range and validity are checked. Length can be 11 or 14.
+                                  customerReferenceNumber1:
+                                    type: string
+                                    maxLength: 35
+                                    description: 'Parcel customer reference number 1.'
+                                  customerReferenceNumber2:
+                                    type: string
+                                    maxLength: 35
+                                    description: 'Parcel customer reference number 2.'
+                                  customerReferenceNumber3:
+                                    type: string
+                                    maxLength: 35
+                                    description: 'Parcel customer reference number 3.'   
+                                  customerReferenceNumber4:
+                                    type: string
+                                    maxLength: 35
+                                    description: 'Parcel customer reference number 4.'
+                                  swap:
+                                    type: boolean
+                                    description: >-
+                                      Defines if the parcel is a consignment swap parcel. Default value is false.
+                                  volume:
+                                    type: integer
+                                    maximum: 999999999
+                                    description: >-
+                                      Volume of the single parcel (length/width/height in format LLLWWWHHH) in cm without separators.
+                                  weight:
+                                    type: integer
+                                    maximum: 99999999
+                                    description: >-
+                                      Parcel weight in grams units without decimal delimiter (e.g. 3000 equals 3kg). Consignement allows 8-digit values, collection requests 7-digit and dangerous goods 6-digit.
+                                  hazardousLimitedQuantities:
+                                    type: boolean
+                                    description: >-
+                                      Defines if the parcel is a limited quantities hazardous goods parcel. Default value is false
+                                  higherInsurance:
+                                    type: object
+                                    description: >-
+                                      Defines if the parcel has increased insurance value. Default value is false.
+                                    properties:
+                                      amount:
+                                        type: number
+                                        maximum: 9999999999
+                                        description: >-
+                                          Increased insurance value with 2 decimal point positions without separators.
+                                      currency:
+                                        type: string
+                                        minLength: 3
+                                        maxLength: 3
+                                        description: >-
+                                          Currency code for increased insurance in format ISO 4217 alpha 3.
+                                    required:
+                                      - amount
+                                      - currency
+                                  content:
+                                    type: string
+                                    maxLength: 50
+                                    description: >-
+                                      Content of the parcel. Mandatory for increased insurance. For collection requests maximum length is 50, for consignment it is 35.
+                                  addService:
+                                    type: integer
+                                    enum: [1, 2, 3]
+                                    description: >-
+                                      Additional service. Possible values are:
+                                        1 = delivery information
+                                        2 = documents return
+                                        3 = written permission to deposit goods by sender
+                                  messageNumber:
+                                    type: integer
+                                    maximum: 99999
+                                    description: >-
+                                      Message number for consignment shipper information. Default value is 1.
+                                  function:
+                                    type: string
+                                    enum: [LOCKDZB, LOCKASG, LOCKEVM, LOCKSHOP, LOCKTV]
+                                    description: >-
+                                      Blockable functions, possible values are:
+                                        LOCKDZB = delivery to a third party with notification of delivery
+                                        LOCKASG = written permission to deposit goods
+                                        LOCKEVM = delivery with non-recurring authority
+                                        LOCKSHOP = parcel shop
+                                        LOCKTV = appointment
+                                  parameter:
+                                    type: string
+                                    maxLength: 300
+                                    description: Free text for blockable functions.
+                                  cod:
+                                    type: object
+                                    description: Contains COD data for COD consignments.
+                                    properties:
+                                      amount:
+                                        type: number
+                                        maximum: 9999999999
+                                        description: >-
+                                          COD amount in the currency of the destination country. The amount is specified as integer value e.g. 300.00 becomes 30000. Please note the national ceilings for cod in the corresponding relations.
+                                      currency:
+                                        type: string
+                                        minLength: 3
+                                        maxLength: 3
+                                        description: >-
+                                          ISO 4217 alpha-3 currency code (destination country).
+                                      inkasso:
+                                        type: integer
+                                        enum: [0, 1]
+                                        description: >-
+                                          Defines collection type. Possible values are: 0 = cash, 1 = crossed cheque
+                                      purpose:
+                                        type: string
+                                        maxLength: 14
+                                        description: Purpose of use.
+                                      bankCode:
+                                        type: string
+                                        maxLength: 25
+                                        description: >-
+                                          Bank code. If this value is filled, parameters for bankName, bankAccountNumber and bankAccountHolder must also be filled.
+                                      bankName:
+                                        type: string
+                                        maxLength: 27
+                                        description: >-
+                                          Bank name. If this value is filled, parameters for bankCode, bankAccountNumber and bankAccountHolder must also be filled.
+                                      bankAccountNumber:
+                                        type: string
+                                        maxLength: 25
+                                        description: >-
+                                          Bank account number. If this value is filled, parameters for bankCode, bankName and bankAccountHolder must also be filled.
+                                      bankAccountHolder:
+                                        type: string
+                                        maxLength: 30
+                                        description: >-
+                                          Account holder. If this value is filled, parameters for bankCode, bankName and bankAccountNumber must also be filled.
+                                      iban:
+                                        type: string
+                                        maxLength: 50
+                                        description: >-
+                                          International bank account number. If this value is filled, parameters for bankCode, bankName, bankAccountNumber and bankAccountHolder must also be filled.
+                                      bic:
+                                        type: string
+                                        maxLength: 50
+                                        description: >-
+                                          Bank identifier code. If this value is filled, parameters for bankCode, bankName, bankAccountNumber and bankAccountHolder must also be filled.
+                                    required:
+                                      - amount
+                                      - currency
+                                      - inkasso
+                                  international:
+                                    type: object
+                                    description: Contains data for consignments across customs frontiers.
+                                    properties:
+                                      parcelType:
+                                        type: boolean
+                                        description: >-
+                                          Defines if the type of parcel is "documents" (allowed for air based destination only). Default value is false.
+                                      customsAmount:
+                                        type: number
+                                        maximum: 999999999999
+                                        description: >-
+                                          Defines the customs amount in total without decimal separator (e.g. 14.000 = 14000). For documents it is 0.
+                                      customsCurrency:
+                                        type: string
+                                        minLength: 3
+                                        maxLength: 3
+                                        description: >-
+                                          Currency code in ISO 4217 alpha-3 format.
+                                      customsAmountEx:
+                                        type: number
+                                        maximum: 999999999999
+                                        description: >-
+                                          Defines the converted customs amount in total without decimal separator (e.g. 14.000 = 14000). For documents it is 0.
+                                      customsCurrencyEx:
+                                        type: string
+                                        minLength: 3
+                                        maxLength: 3
+                                        description: >-
+                                          Currency code in ISO 4217 alpha-3 format. Currency for conversion (destination country).
+                                      clearanceCleared:
+                                        type: string
+                                        minLength: 1
+                                        maxLength: 1
+                                        enum: [N, F, E, T, I, H]
+                                        description: >-
+                                          (N)o,
+                                          (F)ree,
+                                          (E)xport Cleared,
+                                          (T)ransit cleared,
+                                          (I)mport Cleared,
+                                          (H)ybrid.
+                                      prealertStatus:
+                                        type: string
+                                        minLength: 3
+                                        maxLength: 3
+                                        enum: [S03, S04, S05, S06, S07, S08, S09, S13, S14, S15, S16]
+                                        description: >-
+                                          S03 = Data captured by sending depot
+                                          S04 = Data are available for export gateway depots
+                                          S05 = Pre-alert provided (1st linehaul)
+                                          S06 = Return to sending depot by export gateway
+                                          S07 = Deactivated
+                                          S08 = HV import customs cleared
+                                          S09 = transit via road (T1)
+                                          S13 = Pre-alert provided (2nd linehaul)
+                                          S14 = Returned by import gateway (1st linehaul)
+                                          S15 = LV import customs cleared
+                                          S16 = Returns to sending country (2nd linehaul)
+                                      exportReason:
+                                        type: string
+                                        minLength: 2
+                                        maxLength: 2
+                                        enum: ['01', '02', '03']
+                                        description: >-
+                                          Reason for export :
+                                            01: sale
+                                            02: return/replacement
+                                            03: gift
+                                      customsTerms:
+                                        type: string
+                                        minLength: 2
+                                        maxLength: 2
+                                        enum: ['01', '02', '03', '05', '06']
+                                        description: >-
+                                          Declares the customs terms. Possible values are:
+                                          01 = DAP, cleared
+                                          02 = DDP, delivered duty paid (incl. duties and excl. Taxes
+                                          03 = DDP, delivered duty paid (incl. duties and taxes)
+                                          05 = ex works (EXW)
+                                          06 = DAP
+                                      customsContent:
+                                        type: string
+                                        maxLength: 35
+                                        enum: [A, B, C, D, E, F, G, H, I]
+                                        description: >-
+                                          Describes the content of the parcel.
+                                      customsPaper:
+                                        type: string
+                                        maxLength: 20
+                                        description: >-
+                                          Lists the accompanying documents. The values are to be combined without separator (e.g. "ABG"). Following values are defined:
+                                          A = commercial invoice
+                                          B = pro forma invoice
+                                          C = export declaration
+                                          D = EUR1
+                                          E = EUR2
+                                          F = ATR
+                                          G = delivery note
+                                          H = third party billing
+                                          I = T1 document
+                                      customsEnclosure:
+                                        type: boolean
+                                        description: >-
+                                          Defines if the accompanying documents are at the parcel or not. Default value is false.
+                                      customsInvoice:
+                                        type: string
+                                        maxLength: 20
+                                        description: Defines the invoice number.
+                                      customsInvoiceDate:
+                                        type: integer
+                                        maximum: 99999999
+                                        description: >-
+                                          Defines the invoice date (format YYYYMMDD).
+                                      customsAmountParcel:
+                                        type: number
+                                        maximum: 999999999999
+                                        description: >-
+                                          Parcel value with two decimal places without separator.
+                                      linehaul:
+                                        type: string
+                                        enum: [AI, RO]
+                                        description: >-
+                                          Defines mode of line haul. Possible values are "AI" for air and "RO" for road.
+                                      shipMrn:
+                                        type: string
+                                        maxLength: 20
+                                        description: >-
+                                          Movement reference number of the electronical export declaration.
+                                      collectiveCustomsClearance:
+                                        type: boolean
+                                        description: >-
+                                          Flag for determining collective customs clearance. Default value is false.
+                                      comment1:
+                                        type: string
+                                        maxLength: 70
+                                        description: Comment
+                                      comment2:
+                                        type: string
+                                        maxLength: 70
+                                        description: The second comment
+                                      commercialInvoiceConsigneeVatNumber:
+                                        type: string
+                                        maxLength: 20
+                                        description: Defines the commercial invoice consignee VAT number.
+                                      commercialInvoiceConsignee:
+                                        description: >-
+                                          Contains address data of commercial invoice consignee.
+                                        allOf:
+                                          - $ref: '#/components/schemas/address'
+                                      commercialInvoiceConsignor:
+                                        description: >-
+                                          Contains address data of commercial invoice consignor.
+                                        allOf:
+                                          - $ref: '#/components/schemas/address'
+                                    required:
+                                      - parcelType
+                                      - customsAmount
+                                      - customsCurrency
+                                      - customsAmountEx
+                                      - customsCurrencyEx
+                                      - clearanceCleared
+                                      - prealertStatus
+                                      - exportReason
+                                      - customsTerms
+                                      - customsContent
+                                      - customsInvoice
+                                      - customsInvoiceDate
+                                      - commercialInvoiceConsignee
+                                      - commercialInvoiceConsignor
+                                  hazardous:
+                                    type: array
+                                    description: >-
+                                      Contains packing and substance data for dangerous goods.
+                                    items:
+                                      maxItems: 4  
+                                      properties:
+                                        identificationUnNo:
+                                          type: string
+                                          minLength: 4
+                                          maxLength: 4
+                                          description: >-
+                                            Defines UN number of hazardous substance. UN numbers range between 0004 and 9004.
+                                        identificationClass:
+                                          type: string
+                                          maxLength: 6
+                                          description: >-
+                                            Defines class of hazardous substance. Possible values range from 1 to 9. Subclasses are specified as position after decimal point (e.g. class 1 is "explosives",  class 1.6 is "extremely insensitive explosives").
+                                        classificationCode:
+                                          type: string
+                                          maxLength: 5
+                                          description: >-
+                                            Defines classification code of hazardous substance.
+                                        packingGroup:
+                                          type: string
+                                          maxLength: 5
+                                          description: >-
+                                            Defines packing group of hazardous substance. Common values are "I", "II" or "III".
+                                        packingCode:
+                                          type: string
+                                          enum: [0A, 0A1, 0A2, 1A, 1A1, 1A2, 1B, 1B1, 1B2, 1H, 1H1, 1H2, 3A, 3A1, 3A2, 3B, 3B1, 3B2, 3H, 3H1, 3H2, 4A, 4B, 4D, 4G, 4H, 4H1, 4H2, 5H, 5M, 6H]
+                                          description: >-
+                                            Defines packing code. Possible values are:
+                                              0A = thin sheet packing
+                                              0A1 = thin sheet packing with non removable head
+                                              0A2 = thin sheet packing with removable head
+                                              1A = steel barre
+                                              1A1 = steel barrel with non removable head
+                                              1A2 = steel barrel with removable head
+                                              1B = aluminium barrel
+                                              1B1 = aluminium barrel with non removable head
+                                              1B2 = aluminium barrel with removable head
+                                              1H = plastics barrel
+                                              1H1 = plastics barrel with non removable head
+                                              1H2 = plastics barrel with removable head
+                                              3A = steel canister
+                                              3A1 = steel canister with non removable head
+                                              3A2 = steel canister with removable head
+                                              3B = aluminium canister,
+                                              3B1 = aluminium canister with non removable head
+                                              3B2 = aluminium canister with removable head
+                                              3H = plastics canister,
+                                              3H1 = plastics canister with non removable head
+                                              3H2 = plastics canister with removable head
+                                              4A = steel crates
+                                              4B = aluminium crate
+                                              4D = plywood crate
+                                              4G = cardboard crate
+                                              4H = plastics crate
+                                              4H1 = plastics crate plastics expanded
+                                              4H2 = plastics crate plastics solid
+                                              5H = plastics bags
+                                              5M = paper bags
+                                              6H = combination packings
+                                        description:
+                                          type: string
+                                          maxLength: 160
+                                          description: >-
+                                            Description of hazardous substance (redundant).
+                                        subsidiaryRisk:
+                                          type: string
+                                          maxLength: 10
+                                          description: >-
+                                            Subsidiary risk of hazardous substance (redundant).
+                                        tunnelRestrictionCode:
+                                          type: string
+                                          enum: [A, B, C, D, E]
+                                          description: >-
+                                            Tunnel restriction code of hazardous substance (redundant). Possible values are "A", "B", "C", "D" or "E".
+                                        hazardousWeight:
+                                          type: number
+                                          description: >-
+                                            Weight of hazardous substance with 4 places before decimal point and 2 decimal places (with separator).
+                                        netWeight:
+                                          type: number
+                                          description: >-
+                                            Net weight of hazardous substance with 4 places before decimal point and 2 decimal places (with separator).
+                                        factor:
+                                          type: integer
+                                          maximum: 999
+                                          description: >-
+                                            Factor of hazardous substance (redundant ). 999 means unlimited.
+                                        notOtherwiseSpecified:
+                                          type: string
+                                          maxLength: 150
+                                          description: >-
+                                            A not otherwise specified text which is mandatory for some substances
+                                      required:
+                                        - identificationUnNo
+                                        - identificationClass
+                                        - packingCode
+                                        - description
+                                        - hazardousWeight
+                                        - factor
+                                  printInfo1OnParcelLabel:
+                                    type: boolean
+                                    description: >-
+                                      Determines if content of parameter info1 will be added on the label of a collection request parcel. Default value is false.
+                                  info1:
+                                    type: string
+                                    maxLength: 29
+                                    description: >-
+                                      Information text 1. Will be printed on the parcel label if the flag printInfo1OnParcellabel is set to true.
+                                  info2:
+                                    type: string
+                                    maxLength: 30
+                                    description: >-
+                                      Information text 2. Will not be printed on the parcel label.
+                                  returns:
+                                    type: boolean
+                                    description: >-
+                                      Defines if parcel is a return parcel. The return parcel must always be next in order to the corresponding outbound parcel. Default value is false.
+                                  customsTransportCost:
+                                    type: number
+                                    maximum: 9999999999999
+                                    description: >-
+                                      Custom transport cost without decimal separator (e.g. 14.000 = 14000). Mandatory for the destination country UK
+                                  customsTransportCostCurrency:
+                                    type: string
+                                    minLength: 3
+                                    maxLength: 3
+                                    description: >-
+                                      Currency code in ISO 4217 alpha-3 format. Mandatory for the destination country UK
+                              productAndServiceData:
+                                type: object
+                                description: Contains special data for a shipment.
+                                properties:
+                                  orderType:
+                                    type: string
+                                    enum:
+                                      - consignment
+                                      - collection request order
+                                      - pickup information
+                                    description: Defines the shipment type.
+                                  saturdayDelivery:
+                                    type: boolean
+                                    description: >-
+                                      Defines if saturday delivery is demanded. Only selectable for product "E12". Default value is false.
+                                  exWorksDelivery:
+                                    type: boolean
+                                    description: >-
+                                      Defines if the recipient has to pay the consignment.
+                                      Default value is false.
+                                  guarantee:
+                                    type: boolean
+                                    description: >-
+                                      Set to true if an international shipment shall use Guarantee, only for products NP and E18 in international parcels
+                                  tyres:
+                                    type: boolean
+                                    description: >-
+                                      Set to true if this consignment contains bulk tyres, only for product NP.
+                                  personalDelivery:
+                                    $ref: '#/components/schemas/personalDelivery'
+                                  pickup:
+                                    $ref: '#/components/schemas/pickup'
+                                  parcelShopDelivery:
+                                    $ref: '#/components/schemas/parcelShopDelivery'
+                                  predict:
+                                    description: >-
+                                      Contains data for interactive notification for consignments. Only channel e-mail and SMS is allowed.
+                                    allOf:
+                                      - $ref: '#/components/schemas/notification'
+                                  personalDeliveryNotification:
+                                    description: >-
+                                      Contains data for personal delivery notification for consignments.
+                                    allOf:
+                                      - $ref: '#/components/schemas/notification'
+                                  proactiveNotification:
+                                    type: array
+                                    description: >-
+                                      Contains information of proactive notification for consignments.
+                                    maxItems: 5
+                                    items:
+                                      $ref: '#/components/schemas/proactiveNotification'
+                                  delivery:
+                                    description: >-
+                                      Contains special delivery data for consignments.
+                                    allOf:
+                                      - $ref: '#/components/schemas/delivery'
+                                  invoiceAddress:
+                                    description: >-
+                                      Contains data about invoice recipient if it differs for consignment.
+                                    allOf:
+                                      - $ref: '#/components/schemas/address'
+                                  ageCheck:
+                                    type: boolean
+                                    description: >-
+                                      Set to true if recipients age is to be checked on delivery.
+                                  countrySpecificService:
+                                    type: string
+                                    description: >-
+                                      In some relations a specific service code can be set which overwrites the feature selection.
+                                required:
+                                  - orderType
+                            required:
+                              - generalShipmentData
+                              - productAndServiceData
+                  required:
+                    - printOptions
+                    - orders
+              required:
+                - authentication
+                - storeOrders
+      responses:
+        '200':
+          description: returns created shipment orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderResult:
+                    type: object
+                    description: Response data and PDF parcel label
+                    properties:
+                      parcellabelsPDF:
+                        type: string
+                        format: byte # base64-encoded file contents
+                        description: Contains parcel label PDF data in bytes.
+                      shipmentResponses:
+                        type: array
+                        description: Contains response data for every shipment order.
+                        items:
+                          description: Bundle shipment response data.
+                          properties:
+                            identificationNumber:
+                              type: string
+                              description: Serves as unique alphanumeric key of the shipment used by customer.
+                            mpsId:
+                              type: string
+                              maxLength: 25
+                              description: >-
+                                The shipment number for consignment data. If ordertype is pickup information, the shipment number is an internal database id, which is necessary for technical support requests at DPD.
+                            parcelInformation:
+                              type: array
+                              description: Contains information about the single parcels.
+                              items:
+                                properties:
+                                  parcelLabelNumber:
+                                    type: string
+                                    description: The parcel label number of the corresponding parcel.
+                                  dpdReference:
+                                    type: string
+                                    description: The DPD reference for this parcel.
+                            faults:
+                              type: array
+                              description: Contains information about errors during shipment order processing.
+                              maxItems: 3
+                              items:
+                                properties:
+                                  faultCode:
+                                    type: string
+                                    description: error codes
+                                  message:
+                                    type: string
+                                    description: Message with detailed information for the fault (e.g. incorrect field).
+                                required:
+                                  - faultCode
+                                  - message
+  /ParcelLifeCycleService/V2_0/getParcelLabelNumberForWebNumber:
+    post:
+      summary: Parcel label number for the given web number.
+      operationId: getParcelLabelNumberForWebNumber
+      description: Provides the parcel label number for the given web number.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authentication: 
+                  $ref: '#/components/schemas/authentication'
+                getParcelLabelNumberForWebNumber:
+                  type: object
+                  description: Object containig input parameter
+                  properties:
+                    webNumber:
+                      type: string
+                      description: The web information number.
+              example: { "authentication" : { "delisId" : "foresapi",   "authToken" : "vyA2sRC54l9MNGyxjKPrfvUaoyhBMYKzu1CEYk6cAgeW2HsuLIQc9w69aOPZ", "messageLanguage" : "en_EN" }, "getParcelLabelNumberForWebNumber" : { "webNumber" : "IO1234567" } }
+        description: Authentication data and Web number
+        required: true
+      responses:
+        '200':
+          description: Parcel label number
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  getParcelLabelNumberForWebNumberResponse:
+                    description: Result object with parcel label number.
+                    type: object
+                    properties:
+                      parcelLabelNumber:
+                        description: Parcel label number
+                        type: string
+        '100':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticationFault:
+                    type: object
+                    properties:
+                      errorCode:
+                        type: string
+                        description: >-
+                          The error code. Valid codes: NoAccessAuthenticationFault=-1, NoRightsAuthenticationFault=-2
+                      errorMessage:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                        description: The error message text.
+                    required:
+                      - errorCode
+                      - errorMessage
+        '101':
+          description: Is thrown if a data fault occurs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dataFault:
+                    type: object
+                    properties:
+                      errorCode:
+                        type: string
+                        minLength: 1
+                        maxLength: 4
+                        description: The error code.
+                      errorMessage:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                        description: The error message text.
+                    required:
+                      - errorCode
+                      - errorMessage
+        '102':
+          description: Is thrown if an internal system fault occurs. 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  systemFault:
+                    type: object
+                    properties:
+                      errorCode:
+                        type: string
+                        minLength: 1
+                        maxLength: 4
+                        description: The error code.
+                      errorMessage:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                        description: The error message text.
+                    required:
+                      - errorCode
+                      - errorMessage
+  /ParcelLifeCycleService/V2_0/getTrackingData:
+    post:
+      summary: Reads tracking information of a parcel
+      operationId: getTrackingData
+      description: Parcel tracking info identified by parcel number.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authentication: 
+                  $ref: '#/components/schemas/authentication'
+                getTrackingData:
+                  type: object
+                  description: Object containig input parameter
+                  properties:
+                    parcelLabelNumber:
+                      type: string
+                      description: Parcel number on the label
+              example: { "authentication" : { "delisId" : "foresapi",   "authToken" : "vyA2sRC54l9MNGyxjKPrfvUaoyhBMYKzu1CEYk6cAgeW2HsuLIQc9w69aOPZ", "messageLanguage" : "en_EN" }, "getTrackingData" : { "parcelLabelNumber" : "06086024483085" } }
+        description: Authentication data and Parcel number (from label)
+        required: true
+      responses:
+        '200':
+          description: Parcel tracking information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trackingResult:
+                    description: Result object with tracking data.
+                    type: object
+                    properties:
+                      shipmentInfo:
+                        description: >-
+                          Contains general shipment information (e.g. service
+                          code).
+                        allOf:
+                          - type: object
+                            properties:
+                              receiver:
+                                description: Receiver of the shipment
+                                allOf:
+                                  - $ref: '#/components/schemas/ContentItem'
+                              predictInformation:
+                                description: >- 
+                                  Information about estimated delivery time of parcel (DPD Predict).
+                                allOf:
+                                  - $ref: '#/components/schemas/ContentItem'
+                              serviceDescription:
+                                description: >-
+                                  Name of DPD product of the parcel (e.g. DPD Classic).
+                                allOf:
+                                  - $ref: '#/components/schemas/ContentItem'
+                              additionalServiceElements:
+                                description: Additional services for DPD product.
+                                allOf:
+                                  - $ref: '#/components/schemas/ContentItem'
+                              trackingProperty:
+                                description: Properties
+                                type: array
+                                minItems: 0
+                                items:
+                                  $ref: '#/components/schemas/TrackingProperty'
+                          - $ref: '#/components/schemas/StatusInfo'
+                      statusInfo:
+                        description: Status information
+                        type: array
+                        items:
+                          minItems: 0
+                          allOf:
+                            - $ref: '#/components/schemas/StatusInfo'
+                      contactInfo:
+                        description: Contact information
+                        type: array
+                        items:
+                          minItems: 0
+                          maxItems: 3
+                          allOf:
+                            - $ref: '#/components/schemas/ContentItem'
+        '100':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticationFault:
+                    type: object
+                    properties:
+                      errorCode:
+                        type: string
+                        description: >-
+                          The error code. Valid codes: NoAccessAuthenticationFault=-1, NoRightsAuthenticationFault=-2
+                      errorMessage:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                        description: The error message text.
+                    required:
+                      - errorCode
+                      - errorMessage
+        '101':
+          description: Is thrown if a data fault occurs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dataFault:
+                    type: object
+                    properties:
+                      errorCode:
+                        type: string
+                        minLength: 1
+                        maxLength: 4
+                        description: The error code.
+                      errorMessage:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                        description: The error message text.
+                    required:
+                      - errorCode
+                      - errorMessage
+        '102':
+          description: Is thrown if an internal system fault occurs. 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  systemFault:
+                    type: object
+                    properties:
+                      errorCode:
+                        type: string
+                        minLength: 1
+                        maxLength: 4
+                        description: The error code.
+                      errorMessage:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                        description: The error message text.
+                    required:
+                      - errorCode
+                      - errorMessage
+components:
+  schemas:
+    authentication:
+      type: object
+      description: Authentication data are directly in a request body.
+      properties:
+        delisId:
+          type: string
+          description: One of the customer identifiers in Information systems
+        authToken:
+          type: string
+          description: Authentication token
+        messageLanguage:
+          type: string
+          description: Preferred language code
+    address:
+      type: object
+      description: address of sender, recipient or any other subject
+      properties:
+        name1:
+          type: string
+          maxLength: 50
+          description: >-
+            Name of address owner. For dangerous goods the maximum length is 50, otherwise always 35.
+        name2:
+          type: string
+          maxLength: 35
+          description: 'Name 2 of address owner.'
+        street:
+          type: string
+          maxLength: 50
+          description: >-
+            Street of address owner. For dangerous goods the maximum length is 50, otherwise always 35.
+        houseNo:
+          type: string
+          maxLength: 8
+          description: House number of address owner.
+        state:
+          type: string
+          minLength: 2
+          maxLength: 2
+          description: >-
+            State of address owner in ISO 3166-2 code (e.g. BY = Bayern).
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          description: >-
+            Country of address owner in ISO 3166-1 alpha-2 format (e.g. 'DE').
+        zipCode:
+          type: string
+          maxLength: 9
+          description: Zip code of address owner.
+        city:
+          type: string
+          maxLength: 50
+          description: >-
+            City/town of address owner. For dangerous goods the maximum length is 50, otherwise always 35.
+        gln:
+          type: number
+          maximum: 9999999999999
+          description: International location number of address owner.
+        customerNumber:
+          type: string
+          maxLength: 17
+          description: >-
+            Customer number of address owner. Maximum length is 17 for consignment and pickup information, 11 for collection request. Mandatory for sender's address.
+        type:
+          type: string
+          enum: [B, P]
+          description: B = business, P = private
+        contact:
+          type: string
+          maxLength: 35
+          description: Contact person of address owner.
+        phone:
+          type: string
+          maxLength: 30
+          description: >-
+            Phone number of address owner. Mandatory if phone is the chosen notification channel. No required data format. Either phone or email is mandatory in the complex type international.
+        fax:
+          type: string
+          maxLength: 30
+          description: >-
+            Fax number of address owner. No required data format.
+        email:
+          type: string
+          maxLength: 50
+          description: >-
+            Email address of address owner. For collection requests the maximum length is 40, otherwise always 50. Either phone or email is mandatory in the complex type international.
+        comment:
+          type: string
+          maxLength: 70
+          description: >-
+            Comment on address owner.
+        iaccount:
+          type: string
+          maxLength: 50
+          description: >-
+            Account allocation or cost center (for VTG) of invoice data for consignments.
+        eoriNumber:
+          type: string
+          maxLength: 20
+          description: >-
+            If type = B: either eori or vatNumber is mandatory
+        vatNumber:
+          type: string
+          maxLength: 20
+          description: >-
+            If type = B: either eori or vatNumber is mandatory
+        idDocType:
+          type: string
+          maxLength: 1
+          enum: [P, C]
+          description: >-
+            Type of identification document:
+              P: PASSPORT Number
+              C : CNPJ (ou CPF) Number (Brésil)
+            if type = B this field becomes mandatory (dependency of the custom export regime) applicable or not according export custom clearance of origin country
+        idDocNumber:
+          type: string
+          maxLength: 20
+          description: Identification document number
+        website:
+          type: string
+          maxLength: 255
+          description: >-
+            For sender: Selling website, it becomes mandatory if field type is B and the sender is a Ecommercant
+      required:
+        - name1
+        - street
+        - country
+        - zipCode
+        - city
+        - type
+    delivery:
+      description: Bundles delivery data.
+      type: object
+      properties:
+        day:
+          type: string
+          maxLength: 20
+          description: >-
+            Allowed delivery days in the week (0 = Sunday, 1 = Monday etc.).
+            Comma separated list of possible delivery days (e.g. "2,3,4,5").
+        dateFrom:
+          type: integer
+          maximum: 99999999
+          description: 'Fixed delivery from date - format YYYYMMDD, e.g. 20080213.'
+        dateTo:
+          type: integer
+          maximum: 99999999
+          description: 'Fixed delivery to date - format YYYYMMDD, e.g. 20080213.'
+        timeFrom:
+          type: integer
+          maximum: 2400
+          description: 'Time from which the consignee is available - format hhmm (local time recipient country), e.g. 1400 or 0830.'
+        timeTo:
+          type: integer
+          maximum: 2400
+          description: 'Time until the consignee is available - format hhmm (local time recipient country), e.g. 1600 or 0930.'
+    personalDelivery:
+      description: Bundles personal delivery data.
+      type: object
+      properties:
+        type:
+          type: integer
+          minimum: 1
+          maximum: 5
+          enum: [1, 2, 3, 4, 5]
+          description: >-
+            Defines type of personal delivery. Possible values are:
+              1 = department delivery (without personal identification)
+              2 = personal delivery with personal identification (IDCheck)
+              3 = personal delivery without personal identification at drop point (e.g. parcel shop)
+              4 = personal delivery with personal identification at drop point (e.g. parcel shop)
+              5 = personal delivery with personal identification at drop point plus ID-Check (e.g. parcel shop)
+            For parcel shop delivery the parcel shop id must be declared in productAndServiceData. It can be obtained from parcel shop finder.
+        floor:
+          type: string
+          maxLength: 30
+          description: >-
+            Floor where the personal delivery shall take place.
+            This field is only used for department delivery.
+        building:
+          type: string
+          maxLength: 30
+          description: >-
+            Building where the personal delivery shall take place. This field is only used for department delivery (type 1).
+        department:
+          type: string
+          maxLength: 30
+          description: >-
+            Department where the personal delivery shall take place. This field is only used for department delivery (type 1).
+        name:
+          type: string
+          maxLength: 35
+          description: >-
+            Name of the person authorised to accept the consignment. This field is only used for delivery with ID-Check (types 2 and 4).
+        phone:
+          type: string
+          maxLength: 20
+          description: >-
+            Telephone number of the person authorised to accept the consignment. This field is only used for delivery with ID-Check (types 2  nd 4). No required data format.
+        personId:
+          type: string
+          maxLength: 35
+          description: >-
+            Personal identification number of the person authorised to accept the consignment. This field is only used for delivery with ID-Check (types 2 and 4).
+      required:
+        - type
+    parcelShopDelivery:
+      description: >-
+        Contains the necessary information, if a parcel shop delivery is intended.
+      properties:
+        parcelShopId:
+          type: number
+          description: >-
+            Parcel shop ID for parcel shop delivery. Can be obtained from parcel shop finder. Assumes that parameter type of personal delivery is filled with a value from 3 to 5, which means parcel shop delivery. Mandatory in this case.
+        parcelShopNotification:
+          description: >-
+            Contains data for personal notification for parcel shop consignments.
+          allOf:
+            - $ref: '#/components/schemas/notification'
+      required:
+        - parcelShopId
+        - parcelShopNotification
+    notification:
+      description: >-
+        Contains data for personal notification.
+      type: object
+      properties:
+        channel:
+          type: integer
+          enum: [1, 2, 3]
+          description: >-
+            Defines channel of notification. Possible values are:
+              1 = email
+              2 = telephone
+              3 = SMS
+        value:
+          type: string
+          maxLength: 50
+          description: >-
+            Value for the chosen channel, i.e. the phone number or the e-mail address. No required data format for SMS and phone.
+        language:
+          type: string
+          minLength: 2
+          maxLength: 2
+          description: >-
+            Language of the notification in ISO 3166-1 alpha-2 format (e.g. 'DE'). 
+      required:
+        - channel
+        - value
+    proactiveNotification:
+      description: Contains information of proactive notification for consignments.
+      type: object
+      properties:
+        channel:
+          type: integer
+          enum: [1, 2, 3, 6, 7]
+          description: >-
+            Defines type of proactive notification. Possible values are:
+              1 = email
+              2 = telephone
+              3 = SMS
+              6 = FAX
+              7 = postcard
+        value:
+          type: string
+          maxLength: 50
+          description: >-
+            Data for proactive notification, e.g. telephone number, email address, etc. The data format for the proactive message types SMS, phone and FAX is as follows: +international country number#phone number
+            Examples:
+              +49#1725673423
+              +49#01725673423
+        rule:
+          type: integer
+          maximum: 31
+          enum: [1, 2, 4, 8, 16]
+          description: >-
+            Rule for which events a notification is sent. Each event has a certain value. By adding the different values it is possible to build  combinations of events, e.g. notification for pick-up and delivery is 5.
+            The different values are:
+              1 = pick-up
+              2 = non-delivery
+              4 = delivery
+              8 = inbound
+              16 = out for delivery
+        language:
+          type: string
+          minLength: 2
+          maxLength: 2
+          description: >-
+            Language of the notification in ISO 3166-1 alpha-2 format (e.g. 'DE'). 
+      required:
+        - channel
+        - value
+        - rule
+        - language
+    pickup:
+      description: >-
+        Contains information for pickup consignments, pickup address for collection requests or details for pickup information.
+      type: object
+      properties:
+        tour:
+          type: integer
+          maximum: 999
+          description: 'Tour number (between 000 and 999).'
+        quantity:
+          type: integer
+          maximum: 99999
+          description: Quantity of pickup parcels. Mandatory for consignment.
+        date:
+          type: integer
+          maximum: 99999999
+          description: >-
+            Pickup date in consignments and collection requests. The collection day for advice customers. The from date for pickup information. Format is YYYYMMDD. It can also be used as pickup date for collection requests, then format is YYMMDD. Mandatory for consignment.
+        day:
+          type: integer
+          maximum: 6
+          enum: [1, 2, 3, 4, 5, 6]
+          description: >-
+            Pickup day of week for consignments and pickup information. Allowed values are 0..6 (0=Sunday, 1=Monday, etc.). Mandatory for  consignment.
+        fromTime1:
+          type: integer
+          maximum: 2400
+          description: >-
+            From time 1 for consignments and pickup information. Format is hhmm. Mandatory for consignment.
+                fromTime1:
+        toTime1:  
+          type: integer
+          maximum: 2400
+          description: >-
+            Until time 1 for consignments and pickup information. Format is hhmm. Mandatory for consignment.
+                fromTime1:
+        fromTime2:  
+          type: integer
+          maximum: 2400
+          description: >-
+            From time 2 for consignments and pickup information. Format is hhmm.
+        toTime2:  
+          type: integer
+          maximum: 2400
+          description: >-
+            Until time 2 for consignments and pickup information. Format is hhmm.
+        extraPickup:
+          type: boolean
+          description: 'True if extra pickup is requested.'
+        collectionRequestAddress:
+          description: >-
+            Contains pickup address information for consignments and collection requests. Mandatory for consignment.
+          allOf:
+            - $ref: '#/components/schemas/address'
+      required:
+        - quantity
+        - date
+        - day
+    ContentItem:
+      description: Contains multiple content lines.
+      type: object
+      properties:
+        label:
+          description: Identifier for content item.
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/ContentLine'
+        content:
+          description: Content of content item.
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ContentLine'
+        linkTarget:
+          description: >-
+            If this field is filled, a link will be created from the content
+            item.
+          type: string
+      required:
+        - content
+    ContentLine:
+      description: >-
+        Contains one text line and information about how the text has to be
+        displayed.
+      type: object
+      properties:
+        content:
+          description: Text element
+          type: string
+        bold:
+          description: Indicates if text has to be printed bold.
+          type: boolean
+        paragraph:
+          description: Indicates if there has to be a line break after text element.
+          type: boolean
+      required:
+        - content
+        - bold
+        - paragraph
+    TrackingProperty:
+      description: Properties
+      type: object
+      properties:
+        key:
+          description: 'Property key. Possible keys: - showFollowMyParcelLink (value: true)'
+          type: string
+        value:
+          description: Property value
+          type: string
+      required:
+        - key
+        - value
+    StatusInfo:
+      description: Contains all information and scan data for a status.
+      properties:
+        status:
+          description: Shipment status
+          type: string
+          enum:
+            - SHIPMENT
+            - ACCEPTED
+            - AT_SENDING_DEPOT
+            - ON_THE_ROAD
+            - AT_DELIVERY_DEPOT
+            - DELIVERED
+        label:
+          description: Name of status
+          allOf:
+            - $ref: '#/components/schemas/ContentLine'
+        description:
+          description: Description of status
+          allOf:
+            - $ref: '#/components/schemas/ContentLine'
+        statusHasBeenReached:
+          description: Indicates if status has been reached
+          type: boolean
+        isCurrentStatus:
+          description: Indicates if status is current status
+          type: boolean
+        showContactInfo:
+          description: >-
+            Defines if contact information shall be displayed on detail page of the status.
+          type: boolean
+        location:
+          description: Contains the location of the last scan
+          allOf:
+            - $ref: '#/components/schemas/ContentLine'
+        date:
+          description: Contains date and time of the last scan
+          allOf:
+            - $ref: '#/components/schemas/ContentLine'
+        normalItems:
+          description: >-
+            A list of content items which describe events classified as
+              NORMAL.
+          allOf:
+            - $ref: '#/components/schemas/ContentItem'
+        importantItems:
+          description: >-
+            A list of content items which describe events classified as
+              IMPORTANT.
+          allOf:
+            - $ref: '#/components/schemas/ContentItem'
+        errorItems:
+          description: A list of content items which describe events classified as ERROR.
+          allOf:
+            - $ref: '#/components/schemas/ContentItem'
+      required:
+        - status
+        - label
+        - description
+        - statusHasBeenReached
+        - isCurrentStatus
+        - showContactInfo
