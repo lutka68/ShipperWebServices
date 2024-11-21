@@ -145,6 +145,511 @@ paths:
                   - authToken
                   - depot
                   - authTokenExpires
+  /ParcelShopFinderService/V5_0/findCities:
+    post:
+      summary: Find cities with DPD parcel shops by country, zipCode and city
+      operationId: findCities
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authentication: 
+                  $ref: '#/components/schemas/authentication'
+                findCities:
+                  type: object
+                  description: Object containing input parameters
+                  properties:
+                    country:
+                      type: string
+                      minLength: 1
+                      maxLength: 3
+                      description: >-
+                        The country for the search in ISO-A2 or ISO-Num3. Country ISO-A2 code (e.g. Germany = DE) or country number in ISO-Num3 format (e.g. Germany = 276).
+                    zipCode:
+                      type: string
+                      maxLength: 9
+                      description: The zip code of the city.
+                    city:
+                      type: string
+                      maxLength: 100
+                      description: The name of the city.
+                    limit:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      description: Max. number of parcel shop records in the response.
+                    order:
+                      type: string
+                      enum: [ZIP_CODE, NAME]
+                      description: >-
+                        The field (combination) for sorting the result: Zip code or city/town name
+                  required:
+                    - country
+                    - limit
+                    - order
+              example: { "authentication" : { "delisId" : "ZZ1234",  "authToken" : "fhfi4780104hfdvbljdvb", "messageLanguage" : "de_DE" }, "findCities" : { "country" : "DE", "zipCode" :  "63741", "city" : "Aschaffenburg", "limit" : "10", "order" : "NAME" } }
+      responses:
+        '200':
+          description: A list of cities as result of the search.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  findCitiesResponse:
+                    type: object
+                    description: The result data for method findCities.
+                    properties:
+                      city:
+                        type: array
+                        description: >-
+                          A list of cities as result of the search. The list is sorted by city name.
+                        items:
+                          properties:
+                            country:
+                              type: string
+                              description: The country code in ISO-A2 format.
+                              maxLength: 2
+                            countryNum:
+                              type: integer
+                              description: >-
+                                Country number in ISO-Num3 format (e.g. Germany= 276).
+                              minimum: 0
+                              maximum: 999
+                            zipCode:
+                              type: string
+                              description: The zip code of the city.
+                              maxLength: 9
+                            name:
+                              type: string
+                              description: The name of the city.
+                            town:
+                              type: string
+                              description: The town of the city.
+                              
+                example: >-
+                  { "findCitiesResponse": 
+                    { "city": [
+                      { "country": "DE", "countryNum": "276", "zipCode": "63741", "name": "Aschaffenburg",  "town": "" },
+                      { "name": "Damm" } ]
+                    }
+                  }
+        '100':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticationFault:
+                    $ref: '#/components/schemas/authenticationFault'
+        '101':
+          description: Is thrown if a data fault occurs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dataFault:
+                    $ref: '#/components/schemas/dataFault'
+        '102':
+          description: Is thrown if an internal system fault occurs. 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  systemFault:
+                    $ref: '#/components/schemas/systemFault'
+  /ParcelShopFinderService/V5_0/findParcelShops:
+    post:
+      summary: Find the DPD parcel shops by country/countries, zipCode and city and additional criteria like flags for properties of parcel shops. The search country can either domestic country or cross border country/countries for the search.
+      operationId: findParcelShops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authentication: 
+                  $ref: '#/components/schemas/authentication'
+                findParcelShops:
+                  type: object
+                  description: Object containing input parameters
+                  properties:
+                    country:
+                      type: string
+                      minLength: 1
+                      maxLength: 3
+                      description: >-
+                        The country for the search in ISO-A2 or ISO-Num3. Country ISO-A2 code (e.g. Germany = DE) or country number in ISO-Num3 format (e.g. Germany = 276).
+                    zipCode:
+                      type: string
+                      maxLength: 9
+                      description: The zip code of the city.
+                    city:
+                      type: string
+                      maxLength: 100
+                      description: The name of the city.
+                    street:
+                      type: string
+                      maxLength: 100
+                      description: The street name of the search origin.
+                    houseNo:
+                      type: string
+                      maxLength: 10
+                      description: The house number of the search origin.
+                    limit:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      description: Max. number of parcel shop records in the response.
+                    availabilityDate:
+                      type: string
+                      minimum: 1
+                      maximum: 100
+                      description: >-
+                        If this is set the request searches for shop holidays from the given availability date. Otherwise  holidays will be ignored. The expected format is yyyy-MM-dd. If it is wished to regard the opening hours too, this field must contain  a time and the format is yyyy-MM-dd HH:mm.
+                    hideClosed:
+                      type: boolean
+                      description: >-
+                        If set to true, parcel shops, which are closed on the availabilityDate are not returned. Requires that  the availabilityDate contains a valid time
+                    searchCountry:
+                      type: array
+                      description: >-
+                        The country/countries of the search origin. It contains domestic country or cross border  countries for the search.
+                      items:
+                        properties:
+                          country:
+                            type: string
+                            minLength: 1
+                            maxLength: 3
+                            description: >-
+                              The country for the search in ISO-A2 or ISO-Num3. Country ISO-A2 code (e.g. Germany = DE) or country number in ISO-Num3 format (e.g. Germany = 276).
+                    services:
+                      $ref: '#/components/schemas/services'
+                  required:
+                    - country
+                    - limit
+              example: >-
+                { "authentication" : { "delisId" : "ZZ1234",  "authToken" : "fhfi4780104hfdvbljdvb", "messageLanguage" : "de_DE" }, "findParcelShops": { "country": "DE",  "zipCode": "60388", "street": "Casimirstraße", "limit": "10",  "availabilityDate": "2014-11-10 16:00", "hideClosed": "true" } }
+      responses:
+        '200':
+          description: A list of parcel shops containing the search result. 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  findParcelShopsResponse:
+                    type: object
+                    description: The parcel shops as result of the search. 
+                    properties:
+                      parcelShop:
+                        $ref: '#/components/schemas/parcelShop'
+                example: >-
+                  { "findParcelShopsResponse":
+                    { "parcelShop": [ 
+                      {
+                        "parcelShopId": 272195,
+                        "pudoId": "DE16935",
+                        "customerNo": "01600000000238770",
+                        "companyDepotDatabaseId": 132,
+                        "company": "Hintergässer Hof",
+                        "street": "Alt Bischofsheim",
+                        "houseNo": "22",
+                        "country": "DE",
+                        "countryNum": 276,
+                        "state": "Hessen",
+                        "zipCode": "63477",
+                        "city": "Maintal",
+                        "phone": "",
+                        "fax": "",
+                        "email": "",
+                        "openingHours": 
+                          [ { 
+                            "weekday": "Mittwoch",
+                            "weekdayNum": 3,
+                            "openMorning": "09:00",
+                            "closeMorning": "13:00",
+                            "openAfternoon": "15:00",
+                            "closeAfternoon": "18:00",
+                            "dayOff": false }
+                          ],
+                        "services": 
+                          { "service": 
+                            [ { "code": "100", "available": true },
+                              { "code": "991", "available": true },
+                              { "code": "202", "available": true, 
+                                "serviceDetail": [
+                                  {"code": "075"},
+                                  {"code": "048"},
+                                  {"code": "095"}
+                                ]
+                              } 
+                            ] 
+                          }
+                        } 
+                      ] 
+                    }
+                  }
+        '100':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticationFault:
+                    $ref: '#/components/schemas/authenticationFault'
+        '101':
+          description: Is thrown if a data fault occurs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dataFault:
+                    $ref: '#/components/schemas/dataFault'
+        '102':
+          description: Is thrown if an internal system fault occurs. 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  systemFault:
+                    $ref: '#/components/schemas/systemFault'
+  /ParcelShopFinderService/V5_0/findParcelShopsByGeoData:
+    post:
+      summary: Find the DPD parcel shops by geo data and additional criteria like flags for properties of parcel shops. The search country can either domestic country or cross border country/countries for the search. 
+      operationId: findParcelShopsByGeoData
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authentication: 
+                  $ref: '#/components/schemas/authentication'
+                findParcelShopsByGeoData:
+                  type: object
+                  description: Object containing input parameters
+                  properties:
+                    longitude:
+                      type: number
+                      description: The longitude of the search origin.
+                    latitude:
+                      type: number
+                      description: The latitude of the search origin.
+                    limit:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      description: Max. number of parcel shop records in the response.
+                    availabilityDate:
+                      type: string
+                      minimum: 1
+                      maximum: 100
+                      description: >-
+                        If this is set the request searches for shop holidays from the given availability date. Otherwise  holidays will be ignored. The expected format is yyyy-MM-dd. If it is wished to regard the opening hours too, this field must contain  a time and the format is yyyy-MM-dd HH:mm.
+                    hideClosed:
+                      type: boolean
+                      description: >-
+                        If set to true, parcel shops, which are closed on the availabilityDate are not returned. Requires that  the availabilityDate contains a valid time
+                    searchCountry:
+                      type: array
+                      description: >-
+                        The country/countries of the search origin. It contains domestic country or cross border  countries for the search.
+                      items:
+                        properties:
+                          country:
+                            type: string
+                            minLength: 1
+                            maxLength: 3
+                            description: >-
+                              The country for the search in ISO-A2 or ISO-Num3. Country ISO-A2 code (e.g. Germany = DE) or country number in ISO-Num3 format (e.g. Germany = 276).
+                    services:
+                      $ref: '#/components/schemas/services'
+                  required:
+                    - latitude
+                    - longitude
+                    - limit
+              example: >-
+                { "authentication" : {
+                     "delisId" : "<your delisId>",
+                     "authToken" : "<authtoken, get by LoginService>",
+                     "messageLanguage" : "de_DE"
+                     },
+                 "findParcelShopsByGeoData" : {
+                 "longitude": "8.1",
+                 "latitude": "50.9",
+                 "limit": "1"
+                 }
+                }
+      responses:
+        '200':
+          description: A list of parcel shops containing the search result. 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  findParcelShopsByGeoDataResponse:
+                    type: object
+                    description: The parcel shops as result of the search. 
+                    properties:
+                      parcelShop:
+                        $ref: '#/components/schemas/parcelShop'
+                example: >-
+                  {"findParcelShopsResponse": 
+                    {"parcelShop": 
+                      [ {
+                       "parcelShopId": 273613,
+                       "pudoId": "DE17530",
+                       "customerNo": "90000008015717530",
+                       "companyDepotDatabaseId": 129,
+                       "company": "NKD Deutschland GmbH 2580",
+                       "street": "Hauptmarkt",
+                       "houseNo": "16-18",
+                       "country": "DE",
+                       "countryNum": 276,
+                       "state": "Nordrhein-Westfalen",
+                       "zipCode": "57076",
+                       "city": "Siegen",
+                       "phone": "",
+                       "fax": "",
+                       "email": "",
+                       "services": {"service": [ { "code": "100",                 "available": true }, { "code": "991", "available": true }, { "code": "200", "available": true } ]
+                                    }
+                        } ]
+                    }
+                  }
+        '100':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticationFault:
+                    $ref: '#/components/schemas/authenticationFault'
+        '101':
+          description: Is thrown if a data fault occurs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dataFault:
+                    $ref: '#/components/schemas/dataFault'
+        '102':
+          description: Is thrown if an internal system fault occurs. 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  systemFault:
+                    $ref: '#/components/schemas/systemFault'
+  /ParcelShopFinderService/V5_0/getAvailableServices:
+    post:
+      summary: Finding available services of DPD parcel shops by country. 
+      operationId: getAvailableServices1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authentication: 
+                  $ref: '#/components/schemas/authentication'
+                getAvailableServices:
+                  type: object
+                  description: getAvailableServices has not any input parameters
+                  properties:
+                    no_property:
+                      type: string
+                      maxLength: 0
+                      description: getAvailableServices is empty object
+              example: >-
+                { "authentication" : {
+                   "delisId" : "<your delisId>",
+                   "authToken" : "<authtoken, get by LoginService>",
+                   "messageLanguage" : "de_DE"
+                   },
+                   "getAvailableServices" : {
+                   }
+                }
+      responses:
+        '200':
+          description: The result data for supported parcel shop services.  
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  getAvailableServicesResponse:
+                    type: object
+                    description: Contains the result data for supported parcel shop services. 
+                    properties:
+                      services:
+                        $ref: '#/components/schemas/services'
+                example: >-
+                  { "getAvailableServicesResponse": 
+                    {
+                      "service": 
+                      [
+                        { "code": "006", 
+                          "available": "true", 
+                          "description": "Express dropoff", 
+                          "serviceDetail": 
+                          [
+                            {
+                              "code": "002",
+                              "description": "Express cut off"
+                            } 
+                          ]
+                        },
+                        { "code": "003",
+                          "available": "true",
+                          "description": "COD",
+                          "serviceDetail": [
+                            {
+                              "code": "001",
+                              "description": "COD Payment mean"
+                            } ]
+                        } ] }
+                    }
+        '100':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticationFault:
+                    $ref: '#/components/schemas/authenticationFault'
+        '101':
+          description: Is thrown if a data fault occurs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dataFault:
+                    $ref: '#/components/schemas/dataFault'
+        '102':
+          description: Is thrown if an internal system fault occurs. 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  systemFault:
+                    $ref: '#/components/schemas/systemFault'                
   /ShipmentService/V3_4/getAvailableServices:
     post:
       summary: Checking available products for storeOrder method
@@ -205,6 +710,15 @@ paths:
                           type: string
                           description: >-
                             Code of the additional service - can’t be used in product attribute of the storeOrders method.
+        '100':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticationFault:
+                    $ref: '#/components/schemas/authenticationFault'
   /ShipmentService/V3_4/storeOrders:
     post:
       summary: Creating new shipment order
@@ -995,6 +1509,96 @@ paths:
                                 required:
                                   - faultCode
                                   - message
+        '100':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticationFault:
+                    $ref: '#/components/schemas/authenticationFault'
+  /EndOfDayService/V1_0/endOfDay:
+    post:
+      summary: End of day manifest
+      operationId: endOfDay
+      description: Get end of day manifest for predefined date and time range
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authentication: 
+                  $ref: '#/components/schemas/authentication'
+                endOfDay:
+                  type: object
+                  properties:
+                    period:
+                      type: object
+                      description: >-
+                        Time period for End of Day manifest. Time period for End of Day manifest, for example from 10th of September 2018 9am to 11th of September 2018 5pm
+                      properties:
+                        dateFrom:
+                          type: integer
+                          maximum: 99999999
+                          description: >-
+                            Start date to look from. Expected format is YYYYMMDD, e.g. 20180910
+                        timeFrom:
+                          type: integer
+                          maximum: 2359
+                          description: >-
+                            Start time to look from. Expected format is hmm, e.g. 0900
+                        dateTo:    
+                          type: integer
+                          maximum: 99999999
+                          description: >-
+                            Finish date to look from. Expected format is YYYYMMDD, e.g. 20180910
+                        timeTo:
+                          type: integer
+                          maximum: 2359
+                          description: >-
+                            Finish time to look from. Expected format is hmm, e.g. 0900
+                      required:
+                        - dateFrom
+                        - dateTo
+                    printOptions:
+                      type: object
+                      description: The Options which should be used for manifest printing.
+                      properties:
+                        printerLanguage:
+                          type: string
+                          description: >-
+                            The language in which the parcel labels should be returned. PDF as file output. In any case the output is base64 encoded. Supported values are: PDF
+                      required:
+                        - printerLanguage
+                  required:
+                    - period
+      responses:
+        '200':
+          description: End of day manifest.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  endOfDayResponse:
+                    description: Contains end of day manifest.
+                    type: object
+                    properties:
+                      manifestPDF:
+                        description: Contains end of day manifest PDF data in bytes.
+                        type: string
+                        format: byte # base64-encoded file contents
+        '100':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticationFault:
+                    $ref: '#/components/schemas/authenticationFault'
   /ParcelLifeCycleService/V2_0/getParcelLabelNumberForWebNumber:
     post:
       summary: Parcel label number for the given web number.
@@ -1041,20 +1645,7 @@ paths:
                 type: object
                 properties:
                   authenticationFault:
-                    type: object
-                    properties:
-                      errorCode:
-                        type: string
-                        description: >-
-                          The error code. Valid codes: NoAccessAuthenticationFault=-1, NoRightsAuthenticationFault=-2
-                      errorMessage:
-                        type: string
-                        minLength: 1
-                        maxLength: 255
-                        description: The error message text.
-                    required:
-                      - errorCode
-                      - errorMessage
+                    $ref: '#/components/schemas/authenticationFault'
         '101':
           description: Is thrown if a data fault occurs.
           content:
@@ -1191,20 +1782,7 @@ paths:
                 type: object
                 properties:
                   authenticationFault:
-                    type: object
-                    properties:
-                      errorCode:
-                        type: string
-                        description: >-
-                          The error code. Valid codes: NoAccessAuthenticationFault=-1, NoRightsAuthenticationFault=-2
-                      errorMessage:
-                        type: string
-                        minLength: 1
-                        maxLength: 255
-                        description: The error message text.
-                    required:
-                      - errorCode
-                      - errorMessage
+                    $ref: '#/components/schemas/authenticationFault'
         '101':
           description: Is thrown if a data fault occurs.
           content:
@@ -1266,6 +1844,21 @@ components:
         messageLanguage:
           type: string
           description: Preferred language code
+    authenticationFault:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: >-
+            The error code. Valid codes: NoAccessAuthenticationFault=-1, NoRightsAuthenticationFault=-2
+        errorMessage:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: The error message text.
+      required:
+        - errorCode
+        - errorMessage
     address:
       type: object
       description: address of sender, recipient or any other subject
@@ -1608,6 +2201,170 @@ components:
         - quantity
         - date
         - day
+    parcelShop:
+      type: array
+      description: >-
+        A list of parcel shops containing the search result.
+      items:
+        properties:
+          parcelShopId:
+            type: number
+            minimum: 1
+            maximum: 999999999999999999
+            description: The ID of the parcel shop.
+          pudoId:
+            type: string
+            description: The pudo ID of the parcel shop
+            maxLength: 7
+          company:
+            type: string
+            description: The company name of the shop.
+            maxLength: 100
+          street:
+            type: string
+            description: The street, sometimes combined with house number. 
+            maxLength: 100
+          houseNo:
+            type: string
+            description: The house number of the shop.
+            maxLength: 8
+          country:
+            type: string
+            description: The country code in ISO-A2 format.
+            maxLength: 2
+          countryNum:
+            type: integer
+            description: >-
+              Country number in ISO-Num3 format (e.g. Germany = 276)
+            minimum: 1
+            maximum: 999
+          state:
+            type: string
+            description: The name of the state. 
+            maxLength: 22
+          zipCode:
+            type: string
+            description: The zip code of the shop address
+            maxLength: 10
+          city:
+            type: string
+            description: The city of the shop address.
+            maxLength: 100
+          town:
+            type: string
+            description: The town (part of the city) of the shop.
+            maxLength: 35
+          phone:
+            type: string
+            description: The phone number of the shop.
+            maxLength: 50
+          fax:
+            type: string
+            description: The fax number of the shop
+            maxLength: 50
+          email:
+            type: string
+            description: The email address of the shop.
+            maxLength: 100
+          homepage:
+            type: string
+            description: The homepage of the shop. 
+            maxLength: 100
+          latitude:
+            type: number
+            description: The latitude of the shop position.
+          longitude:
+            type: number
+            description: The longitude of the shop position.
+          coordinateX:
+            type: number
+            description: The X geo coordinate of the shop position
+          coordinateY:
+            type: number
+            description: The Y geo coordinate of the shop position
+          coordinateZ:
+            type: number
+            description: The Z geo coordinate of the shop position
+          distance:
+            type: number
+            description: The distance to the origin of the search.
+          expressPickupTime:
+            type: string
+            description: The time when express deliveries are picked up.
+            maxLength: 5
+          extraInfo:
+            type: string
+            description: Additional information to find the parcel shop (e.g. if the shop is in a mall).
+            maxLength: 300
+          openingHours:
+            type: array
+            description: List of opening hours.
+            items:
+              description: 'The data structure for "opening hour" data'
+              properties:
+                weekday:
+                  type: string
+                  description: The localized name of the weekday. 
+                openMorning:
+                  type: string
+                  description: The time of opening of the shop in the morning. 
+                closeMorning:
+                  type: string
+                  description: The time of closing of the shop at the morning. 
+                closeAfternoon:
+                  type: string
+                  description: The time of closing of the shop at the afternoon.  
+                openAfternoon:
+                  type: string
+                  description: The time of opening of the shop at the afternoon.
+          holiday:
+            type: array
+            description: A List of shop vacation times.
+            items:
+              properties:
+                holidayStart:
+                  type: string
+                  description: >-
+                    The start date of holiday in date format "yyyy-MM-dd  HH:mm:ss".
+                holidayEnd:
+                  type: string
+                  description: >-
+                    The end date of holiday in date format "yyyy-MM-dd HH:mm:ss".
+          services: 
+            $ref: '#/components/schemas/services'
+    services:
+      type: object
+      description: Contains the search parameters for parcel shop services
+      properties:
+        service:
+          type: array
+          description: A List of services.
+          items:
+            properties:
+              code:
+                type: string
+                minLength: 3
+                maxLength: 3
+                description: The code of service and service detail.
+              available:
+                type: boolean
+                description: >-
+                  This field specifies whether allowed for searching of parcel shops or not.
+              serviceDetail:
+                type: array
+                description: A list of service detail information
+                items:
+                  properties:
+                    code:
+                      type: string
+                      minLength: 3
+                      maxLength: 3
+                      description: The code of service and service detail.
+                  required:
+                    - code
+            required:
+              - code
+              - available
     ContentItem:
       description: Contains multiple content lines.
       type: object
@@ -1724,3 +2481,79 @@ components:
         - statusHasBeenReached
         - isCurrentStatus
         - showContactInfo
+    dataFault:
+      type: object
+      properties:
+        additionalData:
+          type: string
+          description: Additional data for an error.
+        additionalInfo:
+          type: string
+          description: Additional info for an error in user language.
+        errorClass:
+          type: string
+          description: The class which creates the error
+        errorCode:
+          type: string
+          description: The error code.
+        fullMessage:
+          type: string
+          description: The complete message text for the error with additional info in user language.
+        language:
+          type: string
+          description: The language for messages
+        message:
+          type: string
+          description: The complete message text for the error in user language.
+        shortMessage:
+          type: string
+          description: The short info text for the error in user language.                         
+        systemFullMessage:
+          type: string
+          description: The complete message text for the error with additional info in system language.
+        systemMessage:
+          type: string
+          description: The complete message text for the error in system language
+        systemShortMessage:
+          type: string
+          description: The short info text for the error in system language. 
+      required:
+        - dataFault
+    systemFault:
+      type: object
+      properties:
+        additionalData:
+          type: string
+          description: Additional data for an error
+        additionalInfo:
+          type: string
+          description: Additional info for an error in user language.
+        errorClass:
+          type: string
+          description: The class which creates the error.
+        errorCode:
+          type: string
+          description: The error code.
+        fullMessage:
+          type: string
+          description: The complete message text for the error with additional info in user language.
+        language:
+          type: string
+          description: The language for messages.
+        message:
+          type: string
+          description: The complete message text for the error in user language.
+        shortMessage:
+          type: string
+          description: The short info text for the error in user language.
+        systemFullMessage:
+          type: string
+          description: The complete message text for the error with additional info in system language
+        systemMessage:
+          type: string
+          description: The complete message text for the error in system language.
+        systemShortMessage:
+          type: string
+          description: The short info text for the error in system language
+      required:
+        - systemFault
